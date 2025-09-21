@@ -1,5 +1,5 @@
-Ivanov
-Petrov
-Sidorov
-Andreev
-Kuznetsov
+Иванов
+Петров
+Сидоров
+Андреев
+Кузнецов

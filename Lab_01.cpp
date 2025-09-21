@@ -3,7 +3,7 @@
 // 2) обрабатывать ошибки открытия файлов;
 // 3) ориентироваться на кодировку ANSI (1251);
 // 3) не использовать  стандартные функции работы со  строками и символами
-//  COPY, POS, Str, Val и т. п. из ПАСКАЛя; 
+//  COPY, POS, Str, Val и т. п. из ПАСКАЛя;
 //  stoi, to_string, substr, strstr, find, regex и т. п.  из C++;
 // 4) иметь возможность работы с текстами на русском языке;
 // 5) не переписывать файл в оперативную память целиком.
@@ -18,12 +18,13 @@
 
 const int max_length{100};
 const char repSymbol = '*';
+const int posOffset = 2;
 
 void readFileName(std::string& userFile);
 bool checkFile(std::fstream& fs);
 bool isLess( char currName[], char minName[], int currLen, int minLen);
-void updateMinSurename(char currSurename[], int currSurLen, long currSurPosition, char minSurename[], int& minSurLen, long& minSurPosition);
-void replaceWithSymbol(std::fstream& fs, long position, int length, char symbol);
+void updateMinSurename(char currSurename[], int currSurLen, std::streampos currSurPosition, char minSurename[], int& minSurLen, std::streampos& minSurPosition);
+void replaceWithSymbol(std::fstream& fs, std::streampos position, int length, char symbol);
 
 int main() {
     std::string fileName;
@@ -37,31 +38,28 @@ int main() {
 
     char minSurename[max_length] = {0};
     int minSurLen = 0;
-    long minSurPosition = 0;
+    std::streampos minSurPosition = 0;
 
     char currSurename[max_length] = {0};
     int currSurLen = 0;
-    long currSurPosition = fs.tellg();
+    std::streampos currSurPosition = fs.tellg();
 
     char ch;
 
     while (fs.get(ch)) {
-        if (ch != '\n' && currSurLen < max_length - 1) {
+        if (ch != '\n' && ch != '\r' && currSurLen < max_length - 1) {
             //
             if (currSurLen == 0) {
-                currSurPosition = fs.tellg();
+                currSurPosition = fs.tellg() - std::streampos(posOffset);
             }
             //
             currSurename[currSurLen++] = ch;
         } else {
             currSurename[currSurLen] = '\0';
-
             if (minSurLen == 0 || isLess(currSurename, minSurename, currSurLen, minSurLen)) {
                 updateMinSurename(currSurename, currSurLen, currSurPosition, minSurename, minSurLen, minSurPosition);
             }
-            
             currSurLen = 0;
-            //currSurPosition = fs.tellg();
         }
     }
 
@@ -115,14 +113,15 @@ bool isLess( char currName[], char minName[], int currLen, int minLen) {
     }
 }
 
-void replaceWithSymbol(std::fstream& fs, long position, int length, char symbol) {
+void replaceWithSymbol(std::fstream& fs, std::streampos position, int length, char symbol) {
+    fs.clear();
     fs.seekp(position);
     for (int i = 0; i < length; i++) { 
         fs.put(symbol);
     }
 }
 
-void updateMinSurename(char currSurename[], int currSurLen, long currSurPosition, char minSurename[], int& minSurLen, long& minSurPosition) {
+void updateMinSurename(char currSurename[], int currSurLen, std::streampos currSurPosition, char minSurename[], int& minSurLen, std::streampos& minSurPosition) {
     for (int i = 0; i < currSurLen; ++i) {
         minSurename[i] = currSurename[i];
     }
